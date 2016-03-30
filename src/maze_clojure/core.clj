@@ -42,6 +42,12 @@
     (> new-col old-col)
     (assoc-in rooms [old-row old-col :right?] false)))
 
+(defn set-end-if-necessary [rooms row col]
+  (let [filtered-rooms (filter :end? (flatten rooms))]
+    (if (pos? (count filtered-rooms))
+      rooms
+      (assoc-in rooms [row col :end?] true))))
+
 (defn create-maze [rooms row col]
   (let [rooms (assoc-in rooms [row col :visited?] true)
         next-room (random-neighbors rooms row col)]
@@ -51,15 +57,14 @@
           (if (= old-rooms new-rooms)
              old-rooms
              (recur new-rooms))))
-     rooms)))
+     (set-end-if-necessary rooms row col))))
     
     
 
 (defn -main []
   (let [rooms (create-rooms)
-        rooms (create-maze rooms 0 0)
-        rooms (assoc-in rooms [0 0 :start?] true)
-        rooms (assoc-in rooms [(dec size) (dec size) :end?] true)]
+        rooms (create-maze rooms 0 0)      
+        rooms (assoc-in rooms [0 0 :start?] true)]
     ;print top walls
     (doseq [_ rooms]
       (print " _"))
@@ -71,9 +76,10 @@
       (doseq [room row]
         (cond 
           (:start? room) (print "o")
+          (:end? room) (print "x")
           (:bottom? room) (print "_")
           :else (print " "))
-        (if (:right? room)
+        (if (:right? room) 
           (print "|")
           (print " ")))
      (println))))
